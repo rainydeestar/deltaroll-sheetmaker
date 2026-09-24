@@ -5,13 +5,24 @@
    ============================================================ */
 const ICON_MANIFEST = [
   'icontest.png',
+  'armor.png',
+  'axe.png',
+  'dot.png',
+  'glove.png',
+  'scarf.png',
+  'sword.png',
+  'soul_courage.png',
 ];
 const ICON_DIR = 'assets/icons/';
+const WEAPON_BIG_ICON_MANIFEST = [
+  'big_glove.png',
+];
+const WEAPON_BIG_ICON_DIR = 'assets/weapon-big/';
 const IMAGE_EXTENSIONS = /\.(?:png|jpe?g|gif|webp|avif)$/i;
 
-async function discoverIcons() {
+async function discoverIcons(directory, manifest) {
   try {
-    const response = await fetch(ICON_DIR, { cache: 'no-store' });
+    const response = await fetch(directory, { cache: 'no-store' });
     if (!response.ok) return;
 
     const html = await response.text();
@@ -21,7 +32,7 @@ async function discoverIcons() {
       .map((href) => decodeURIComponent(href.split('/').pop()))
       .filter(Boolean);
 
-    ICON_MANIFEST.push(...discovered.filter((name) => !ICON_MANIFEST.includes(name)));
+    manifest.push(...discovered.filter((name) => !manifest.includes(name)));
   } catch (e) {
     // Static file hosting may not expose directory listings; use the fallback manifest.
   }
@@ -45,14 +56,13 @@ const LAYOUT = {
   colors: {
     white: '#ffffff',
     gray: '#808080',
-    placeholder: '#d281fc', // fallback fill for any icon slot with nothing picked yet
-    dash: '#9da2c4',
+    placeholder: '#000000', // fallback fill for any icon slot with nothing picked yet
   },
   font: { family: 'Determination Sans Web', size: 32, fallback: 'monospace' },
 
   header: {
-    portrait: { x: 86, y: 90, w: 20, h: 24 },
-    name: { x: 47, y: 60 },
+    portrait: { x: 91, y: 90, w: 20, h: 24 },
+    name: { centerX: 102, y: 60 },
     title: { x: 185, y: 42 },
     desc: { x: 185, y: 75, maxWidth: 363, lineHeight: 33, maxLines: 3 },
   },
@@ -85,7 +95,7 @@ const LAYOUT = {
     speed: { valueY: 495 },
     valueRightX: 263,
     custom: { startY: 523, rowH: 30, iconX: 27, iconW: 20, iconH: 24, labelX: 53 },
-    guts: { x: 201, y: 585, w: 18, h: 20, step: 20 },
+    guts: { x: 241, y: 583, w: 20, h: 24, step: 20 },
   },
 
   spells: {
@@ -106,7 +116,7 @@ function blankCharacter(name) {
     portraitIcon: '',
     skills: { brawn: 0, finesse: 0, intellect: 0, perception: 0, charm: 0 },
     equip: {
-      weapon: { icon: '', name: '' },
+      weapon: { icon: '', bigIcon: '', name: '' },
       armor: { icon: '', name: '' },
       trinket: { icon: '', name: '' },
     },
@@ -202,6 +212,12 @@ function textRight(str, rightX, y, color) {
   ctx.fillText(str, rightX, y - 7);
   ctx.textAlign = 'left';
 }
+function textCenter(str, centerX, y, color) {
+  if (!str) return;
+  ctx.fillStyle = color; ctx.textAlign = 'center';
+  ctx.fillText(str, centerX, y - 7);
+  ctx.textAlign = 'left';
+}
 function wrapText(str, x, y, maxWidth, lineHeight, maxLines, color, laterLineOffset = 0) {
   if (!str) return;
   ctx.fillStyle = color; ctx.textAlign = 'left';
@@ -222,9 +238,9 @@ function drawIcon(path, x, y, w, h) {
   else { ctx.fillStyle = LAYOUT.colors.placeholder; ctx.fillRect(x, y, w, h); }
 }
 function drawDash(x, y, endX) {
-  ctx.strokeStyle = LAYOUT.colors.dash;
+  ctx.strokeStyle = LAYOUT.colors.gray;
   ctx.lineWidth = 2;
-  ctx.setLineDash([6, 6]);
+  ctx.setLineDash([12, 2]);
   ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(endX, y); ctx.stroke();
   ctx.setLineDash([]);
 }
@@ -232,6 +248,7 @@ function drawDash(x, y, endX) {
 async function collectPaths(c) {
   const p = new Set([LAYOUT.assets.frame, LAYOUT.assets.heartFull, LAYOUT.assets.heartEmpty, LAYOUT.assets.guts]);
   if (c.portraitIcon) p.add(c.portraitIcon);
+  if (c.equip.weapon.bigIcon) p.add(c.equip.weapon.bigIcon);
   [c.equip.weapon, c.equip.armor, c.equip.trinket].forEach((e) => { if (e.icon) p.add(e.icon); });
   c.items.forEach((it) => { if (it.icon) p.add(it.icon); });
   if (c.stats.attack.icon) p.add(c.stats.attack.icon);
@@ -254,7 +271,7 @@ async function render() {
 
   // ---- header ----
   drawIcon(c.portraitIcon, LAYOUT.header.portrait.x, LAYOUT.header.portrait.y, LAYOUT.header.portrait.w, LAYOUT.header.portrait.h);
-  text(c.name, LAYOUT.header.name.x, LAYOUT.header.name.y, white);
+  textCenter(c.name, LAYOUT.header.name.centerX, LAYOUT.header.name.y, white);
   text(c.title, LAYOUT.header.title.x, LAYOUT.header.title.y, white);
   wrapText(c.description, LAYOUT.header.desc.x, LAYOUT.header.desc.y, LAYOUT.header.desc.maxWidth, LAYOUT.header.desc.lineHeight, LAYOUT.header.desc.maxLines, white);
 
@@ -266,13 +283,14 @@ async function render() {
     const rowY = LAYOUT.skills.startY + i * LAYOUT.skills.rowH;
     for (let h = 0; h < 3; h++) {
       const img = h < val ? heartFull : heartEmpty;
-      if (img) ctx.drawImage(img, LAYOUT.skills.heartX[h], rowY, LAYOUT.skills.heartW, LAYOUT.skills.heartH);
+      const x = LAYOUT.skills.heartX[2 - h];
+      if (img) ctx.drawImage(img, x, rowY, LAYOUT.skills.heartW, LAYOUT.skills.heartH);
     }
   });
 
   // ---- equipped ----
   const eq = LAYOUT.equip;
-  drawIcon(c.equip.weapon.icon, eq.weaponBig.x, eq.weaponBig.y, eq.weaponBig.w, eq.weaponBig.h);
+  drawIcon(c.equip.weapon.bigIcon, eq.weaponBig.x, eq.weaponBig.y, eq.weaponBig.w, eq.weaponBig.h);
   drawIcon(c.equip.weapon.icon, eq.rows.weapon.iconX, eq.rows.weapon.iconY, eq.iconW, eq.iconH);
   text(c.equip.weapon.name, eq.textX, eq.rows.weapon.textY, white);
   drawIcon(c.equip.armor.icon, eq.rows.armor.iconX, eq.rows.armor.iconY, eq.iconW, eq.iconH);
@@ -306,7 +324,7 @@ async function render() {
   const gutsImg = imgCache.get(LAYOUT.assets.guts);
   const gutsVal = Math.max(0, parseInt(c.stats.guts) || 0);
   for (let i = 0; i < gutsVal; i++) {
-    const x = st.guts.x + i * st.guts.step;
+    const x = st.guts.x - i * st.guts.step;
     if (gutsImg) ctx.drawImage(gutsImg, x, st.guts.y, st.guts.w, st.guts.h);
     else { ctx.fillStyle = white; ctx.fillRect(x, st.guts.y, st.guts.w, st.guts.h); }
   }
@@ -351,7 +369,7 @@ function makeField(labelText, value, onInput, opts = {}) {
   return wrap;
 }
 
-function makeIconPicker(labelText, value, onChange) {
+function makeIconPicker(labelText, value, onChange, directory = ICON_DIR, manifest = ICON_MANIFEST) {
   const wrap = document.createElement('div');
   wrap.className = 'field-block';
   const lbl = document.createElement('label');
@@ -361,9 +379,9 @@ function makeIconPicker(labelText, value, onChange) {
   const noneOpt = document.createElement('option');
   noneOpt.value = ''; noneOpt.textContent = '— none (placeholder square) —';
   sel.appendChild(noneOpt);
-  ICON_MANIFEST.forEach((f) => {
+  manifest.forEach((f) => {
     const opt = document.createElement('option');
-    opt.value = ICON_DIR + f; opt.textContent = f;
+    opt.value = directory + f; opt.textContent = f;
     sel.appendChild(opt);
   });
   sel.value = value || '';
@@ -394,6 +412,9 @@ function buildForm() {
   });
 
   const eq = el('sec-equip'); eq.innerHTML = '';
+  eq.appendChild(makeIconPicker('Weapon large icon', c.equip.weapon.bigIcon, (v) => {
+    c.equip.weapon.bigIcon = v; scheduleRender();
+  }, WEAPON_BIG_ICON_DIR, WEAPON_BIG_ICON_MANIFEST));
   ['weapon', 'armor', 'trinket'].forEach((key) => {
     eq.appendChild(makeIconPicker(`${cap(key)} icon`, c.equip[key].icon, (v) => { c.equip[key].icon = v; scheduleRender(); }));
     eq.appendChild(makeField(`${cap(key)} name`, c.equip[key].name, (v) => { c.equip[key].name = v; scheduleRender(); }));
@@ -474,7 +495,8 @@ el('download').onclick = () => {
   } catch (e) {
     el('fontWarning').textContent = 'Determination Sans Web not found in assets/fonts/ yet — using a fallback font until you add it.';
   }
-  await discoverIcons();
+  await discoverIcons(ICON_DIR, ICON_MANIFEST);
+  await discoverIcons(WEAPON_BIG_ICON_DIR, WEAPON_BIG_ICON_MANIFEST);
   renderCharSelect();
   buildForm();
   await render();

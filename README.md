@@ -23,7 +23,8 @@ used as-is). Still missing:
 | `assets/fonts/DeterminationSansWeb.woff2` (or `.ttf`) | All text. Falls back to monospace until this exists — you'll see a warning banner in the sidebar until it's found. |
 | `assets/icons/heart_full.png`, `heart_empty.png` | Skill hearts (20×20 each) |
 | `assets/icons/guts.png` | Guts icon (18×20), repeated per point, no empty variant |
-| Anything for weapons/armor/trinkets/items/custom stat icons | Add image files to `assets/icons/`. When served over HTTP, the app discovers them automatically and adds them to every picker in the sidebar. `icontest.png` is also included as a fallback for hosts that do not expose directory listings. Normal icon slots render at 20×24; the one exception (weapon's big icon) renders at 26×36 automatically. |
+| Anything for armor/trinkets/items/custom stat icons | Add image files to `assets/icons/`. When served over HTTP, the app discovers them automatically and adds them to the relevant pickers in the sidebar. `icontest.png` is also included as a fallback for hosts that do not expose directory listings. Normal icon slots render at 20×24. |
+| Weapon's large equipped icon | Add image files to `assets/weapon-big/`. These are separate from the normal weapon icon and render at 26×36. |
 
 Until an icon is picked for a slot, it renders as a plain purple square
 (`#d281fc`) — matching the placeholder convention in your own mockup —
