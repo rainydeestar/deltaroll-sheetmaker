@@ -223,15 +223,17 @@ function textCenter(str, centerX, y, color) {
 }
 function wrapLines(str, maxWidth) {
   if (!str || !String(str).trim()) return [];
-  const words = str.split(/\s+/).filter(Boolean);
   const lines = [];
-  let cur = '';
-  for (const w of words) {
-    const test = cur ? cur + ' ' + w : w;
-    if (ctx.measureText(test).width > maxWidth && cur) { lines.push(cur); cur = w; }
-    else cur = test;
+  for (const paragraph of String(str).split(/\r?\n/)) {
+    const words = paragraph.split(/\s+/).filter(Boolean);
+    let cur = '';
+    for (const word of words) {
+      const test = cur ? cur + ' ' + word : word;
+      if (ctx.measureText(test).width > maxWidth && cur) { lines.push(cur); cur = word; }
+      else cur = test;
+    }
+    lines.push(cur);
   }
-  if (cur) lines.push(cur);
   return lines;
 }
 function drawWrappedLines(lines, x, y, lineHeight, color, laterLineOffset = 0) {
