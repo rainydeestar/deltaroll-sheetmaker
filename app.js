@@ -15,6 +15,8 @@ const ICON_MANIFEST = [
   'clover.png',
 ];
 const ICON_DIR = 'assets/icons/';
+const CHARACTER_ICON_MANIFEST = ['soul_courage.png'];
+const CHARACTER_ICON_DIR = 'assets/character/';
 const WEAPON_BIG_ICON_MANIFEST = [
   'big_glove.png',
 ];
@@ -49,9 +51,9 @@ async function discoverIcons(directory, manifest) {
 const LAYOUT = {
   canvas: { w: 583, h: 1248 },
   assets: {
-    frameTop: 'assets/frame_top.png',
-    frameMiddle: 'assets/frame_middle.png',
-    frameBottom: 'assets/frame_bottom.png',
+    frameTop: 'assets/frame/frame_top.png',
+    frameMiddle: 'assets/frame/frame_middle.png',
+    frameBottom: 'assets/frame/frame_bottom.png',
     heartFull: 'assets/icons/heart_full.png',
     heartEmpty: 'assets/icons/heart_empty.png',
     guts: 'assets/icons/guts.png',
@@ -446,7 +448,7 @@ function buildForm() {
   h.appendChild(makeField('Name', c.name, (v) => { c.name = v; renderCharSelect(); scheduleRender(); }));
   h.appendChild(makeField('Title / level line', c.title, (v) => { c.title = v; scheduleRender(); }));
   h.appendChild(makeField('Description (wraps, up to 3 lines)', c.description, (v) => { c.description = v; scheduleRender(); }, { textarea: true }));
-  h.appendChild(makeIconPicker('Portrait icon', c.portraitIcon, (v) => { c.portraitIcon = v; scheduleRender(); }));
+  h.appendChild(makeIconPicker('Portrait icon', c.portraitIcon, (v) => { c.portraitIcon = v; scheduleRender(); }, CHARACTER_ICON_DIR, CHARACTER_ICON_MANIFEST));
 
   const sk = el('sec-skills'); sk.innerHTML = '';
   const skillLabels = { brawn: 'Brawn', finesse: 'Finesse', intellect: 'Intellect', perception: 'Perception', charm: 'Charm' };
@@ -560,6 +562,7 @@ el('download').onclick = () => {
     el('fontWarning').textContent = 'Determination Sans Web not found in assets/fonts/ yet — using a fallback font until you add it.';
   }
   await discoverIcons(ICON_DIR, ICON_MANIFEST);
+  await discoverIcons(CHARACTER_ICON_DIR, CHARACTER_ICON_MANIFEST);
   await discoverIcons(WEAPON_BIG_ICON_DIR, WEAPON_BIG_ICON_MANIFEST);
   renderCharSelect();
   buildForm();
