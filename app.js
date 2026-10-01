@@ -12,6 +12,7 @@ const ICON_MANIFEST = [
   'scarf.png',
   'sword.png',
   'soul_courage.png',
+  'clover.png',
 ];
 const ICON_DIR = 'assets/icons/';
 const WEAPON_BIG_ICON_MANIFEST = [
@@ -48,7 +49,9 @@ async function discoverIcons(directory, manifest) {
 const LAYOUT = {
   canvas: { w: 583, h: 1248 },
   assets: {
-    frame: 'assets/frame.png',
+    frameTop: 'assets/frame_top.png',
+    frameMiddle: 'assets/frame_middle.png',
+    frameBottom: 'assets/frame_bottom.png',
     heartFull: 'assets/icons/heart_full.png',
     heartEmpty: 'assets/icons/heart_empty.png',
     guts: 'assets/icons/guts.png',
@@ -99,7 +102,7 @@ const LAYOUT = {
   },
 
   spells: {
-    count: 6, startY: 663, rowH: 94,
+    startY: 663, rowH: 94,
     nameX: 32, percentRightX: 549,
     descX: 31, descDy: 32, descMaxWidth: 501, descLineHeight: 24, descMaxLines: 2,
   },
@@ -246,7 +249,14 @@ function drawDash(x, y, endX) {
 }
 
 async function collectPaths(c) {
-  const p = new Set([LAYOUT.assets.frame, LAYOUT.assets.heartFull, LAYOUT.assets.heartEmpty, LAYOUT.assets.guts]);
+  const p = new Set([
+    LAYOUT.assets.frameTop,
+    LAYOUT.assets.frameMiddle,
+    LAYOUT.assets.frameBottom,
+    LAYOUT.assets.heartFull,
+    LAYOUT.assets.heartEmpty,
+    LAYOUT.assets.guts,
+  ]);
   if (c.portraitIcon) p.add(c.portraitIcon);
   if (c.equip.weapon.bigIcon) p.add(c.equip.weapon.bigIcon);
   [c.equip.weapon, c.equip.armor, c.equip.trinket].forEach((e) => { if (e.icon) p.add(e.icon); });
@@ -260,11 +270,28 @@ async function render() {
   const c = activeChar();
   await collectPaths(c);
 
+  const frameTop = imgCache.get(LAYOUT.assets.frameTop);
+  const frameMiddle = imgCache.get(LAYOUT.assets.frameMiddle);
+  const frameBottom = imgCache.get(LAYOUT.assets.frameBottom);
+  const populatedSpells = c.spells.filter((spell) =>
+    [spell.name, spell.percent, spell.description].some((value) => String(value ?? '').trim())
+  );
+  const topHeight = frameTop?.height ?? 654;
+  const middleHeight = populatedSpells.length * LAYOUT.spells.rowH;
+  const bottomHeight = frameBottom?.height ?? 30;
+  canvas.height = topHeight + middleHeight + bottomHeight;
+
   ctx.imageSmoothingEnabled = false;
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  const frame = imgCache.get(LAYOUT.assets.frame);
-  if (frame) ctx.drawImage(frame, 0, 0, canvas.width, canvas.height);
+  if (frameTop) ctx.drawImage(frameTop, 0, 0);
+  if (frameMiddle) {
+    for (let y = topHeight; y < topHeight + middleHeight; y += frameMiddle.height) {
+      const sliceHeight = Math.min(frameMiddle.height, topHeight + middleHeight - y);
+      ctx.drawImage(frameMiddle, 0, 0, frameMiddle.width, sliceHeight, 0, y, canvas.width, sliceHeight);
+    }
+  }
+  if (frameBottom) ctx.drawImage(frameBottom, 0, topHeight + middleHeight);
 
   setFont();
   const { white, gray } = LAYOUT.colors;
@@ -331,13 +358,12 @@ async function render() {
 
   // ---- spells ----
   const sp = LAYOUT.spells;
-  for (let i = 0; i < sp.count; i++) {
-    const s = c.spells[i] || { name: '', percent: '', description: '' };
+  populatedSpells.forEach((s, i) => {
     const y = sp.startY + i * sp.rowH;
     text(s.name, sp.nameX, y, white);
     textRight(s.percent, sp.percentRightX, y, white);
     wrapText(s.description, sp.descX, y + sp.descDy, sp.descMaxWidth, sp.descLineHeight, sp.descMaxLines, gray, 2);
-  }
+  });
 }
 
 let renderPending = false;
@@ -444,7 +470,26 @@ function buildForm() {
     sp.appendChild(makeField(`Spell ${i + 1} name`, s.name, (v) => { s.name = v; scheduleRender(); }));
     sp.appendChild(makeField(`Spell ${i + 1} cost / percent`, s.percent, (v) => { s.percent = v; scheduleRender(); }));
     sp.appendChild(makeField(`Spell ${i + 1} description`, s.description, (v) => { s.description = v; scheduleRender(); }, { textarea: true }));
+    const remove = document.createElement('button');
+    remove.type = 'button';
+    remove.className = 'spell-remove';
+    remove.textContent = 'Remove spell';
+    remove.addEventListener('click', () => {
+      c.spells.splice(i, 1);
+      buildForm();
+      scheduleRender();
+    });
+    sp.appendChild(remove);
   });
+  const addSpell = document.createElement('button');
+  addSpell.type = 'button';
+  addSpell.className = 'spell-add';
+  addSpell.textContent = '+ Add spell';
+  addSpell.addEventListener('click', () => {
+    c.spells.push({ name: '', percent: '', description: '' });
+    buildForm();
+  });
+  sp.appendChild(addSpell);
 }
 
 /* ============================================================

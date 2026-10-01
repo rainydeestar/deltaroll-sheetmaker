@@ -1,8 +1,8 @@
 # Pixel Character Sheet Renderer
 
-Composites a character sheet onto a canvas at native 583×1248 (your frame
-art's actual size — nothing is ever scaled or stretched) and exports it
-as a flat PNG to attach in Discord.
+Composites a character sheet onto a canvas at native 583px width and exports
+it as a flat PNG to attach in Discord. The frame grows vertically to fit the
+populated spells; six spells retain the original 583×1248 size.
 
 ## Verify it's actually pixel-perfect
 The first character loaded is a "Melanie" demo pre-filled with the exact
@@ -15,8 +15,10 @@ your two reference PNGs pixel-by-pixel, not eyeballed — but you should
 still confirm it before trusting it.
 
 ## Assets you still need to add
-`assets/frame.png` is already in place (it's your empty template,
-used as-is). Still missing:
+`assets/frame_top.png`, `assets/frame_middle.png`, and
+`assets/frame_bottom.png` compose the sheet frame. The middle slice repeats
+in the Spells section to fit populated entries; blank spell entries add no
+height. Still missing:
 
 | File | Used for |
 |---|---|
@@ -31,12 +33,9 @@ Until an icon is picked for a slot, it renders as a plain purple square
 so the sheet is legible before all the art exists.
 
 ## Assumptions I made — flag anything that's wrong
-- **Fixed slot counts**, matching what your template art has room for:
-  10 item slots, 6 spell slots, 2 custom stat rows (between Speed and
-  Guts). These aren't add/remove lists — the background art doesn't
-  stretch, so the count is baked in. If you actually want a variable
-  number of any of these, that needs a different approach (the frame
-  can't be a single flat image anymore).
+- **Fixed item and custom-stat slots**: 10 item slots and 2 custom stat rows
+  (between Speed and Guts). Spell entries can be added or removed, and blank
+  entries are omitted from the exported sheet.
 - **Charm's hearts**: your reference shows empty-full-full for a value
   of 2, not full-full-empty. I implemented straightforward left-to-right
   fill (first N hearts full) per your written rule. If you actually want
