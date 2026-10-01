@@ -102,9 +102,9 @@ const LAYOUT = {
   },
 
   spells: {
-    startY: 663, rowH: 94,
+    startY: 663, fixedRowH: 42,
     nameX: 32, percentRightX: 549,
-    descX: 31, descDy: 32, descMaxWidth: 501, descLineHeight: 24, descMaxLines: 2,
+    descX: 31, descDy: 32, descMaxWidth: 501, descLineHeight: 24, descLineGap: 2,
   },
 };
 
@@ -221,9 +221,8 @@ function textCenter(str, centerX, y, color) {
   ctx.fillText(str, centerX, y - 7);
   ctx.textAlign = 'left';
 }
-function wrapText(str, x, y, maxWidth, lineHeight, maxLines, color, laterLineOffset = 0) {
-  if (!str) return;
-  ctx.fillStyle = color; ctx.textAlign = 'left';
+function wrapLines(str, maxWidth) {
+  if (!str || !String(str).trim()) return [];
   const words = str.split(/\s+/).filter(Boolean);
   const lines = [];
   let cur = '';
@@ -233,7 +232,14 @@ function wrapText(str, x, y, maxWidth, lineHeight, maxLines, color, laterLineOff
     else cur = test;
   }
   if (cur) lines.push(cur);
-  lines.slice(0, maxLines).forEach((l, i) => ctx.fillText(l, x, y - 7 + i * lineHeight + (i > 0 ? laterLineOffset : 0)));
+  return lines;
+}
+function drawWrappedLines(lines, x, y, lineHeight, color, laterLineOffset = 0) {
+  ctx.fillStyle = color; ctx.textAlign = 'left';
+  lines.forEach((line, i) => ctx.fillText(line, x, y - 7 + i * lineHeight + (i > 0 ? laterLineOffset : 0)));
+}
+function wrapText(str, x, y, maxWidth, lineHeight, maxLines, color, laterLineOffset = 0) {
+  drawWrappedLines(wrapLines(str, maxWidth).slice(0, maxLines), x, y, lineHeight, color, laterLineOffset);
 }
 function drawIcon(path, x, y, w, h) {
   const img = path ? imgCache.get(path) : null;
@@ -270,14 +276,23 @@ async function render() {
   const c = activeChar();
   await collectPaths(c);
 
+  setFont();
   const frameTop = imgCache.get(LAYOUT.assets.frameTop);
   const frameMiddle = imgCache.get(LAYOUT.assets.frameMiddle);
   const frameBottom = imgCache.get(LAYOUT.assets.frameBottom);
-  const populatedSpells = c.spells.filter((spell) =>
-    [spell.name, spell.percent, spell.description].some((value) => String(value ?? '').trim())
-  );
+  const sp = LAYOUT.spells;
+  const populatedSpells = c.spells
+    .map((spell) => ({
+      spell,
+      descriptionLines: wrapLines(spell.description, sp.descMaxWidth),
+    }))
+    .filter(({ spell }) =>
+      [spell.name, spell.percent, spell.description].some((value) => String(value ?? '').trim())
+    );
+  const spellRowsHeight = populatedSpells.reduce((height, { descriptionLines }) =>
+    height + sp.fixedRowH + descriptionLines.length * (sp.descLineHeight + sp.descLineGap), 0);
   const topHeight = frameTop?.height ?? 654;
-  const middleHeight = populatedSpells.length * LAYOUT.spells.rowH;
+  const middleHeight = spellRowsHeight;
   const bottomHeight = frameBottom?.height ?? 30;
   canvas.height = topHeight + middleHeight + bottomHeight;
 
@@ -357,12 +372,14 @@ async function render() {
   }
 
   // ---- spells ----
-  const sp = LAYOUT.spells;
-  populatedSpells.forEach((s, i) => {
-    const y = sp.startY + i * sp.rowH;
-    text(s.name, sp.nameX, y, white);
-    textRight(s.percent, sp.percentRightX, y, white);
-    wrapText(s.description, sp.descX, y + sp.descDy, sp.descMaxWidth, sp.descLineHeight, sp.descMaxLines, gray, 2);
+  let spellY = sp.startY;
+  populatedSpells.forEach(({ spell, descriptionLines }) => {
+    const y = spellY;
+    const rowHeight = sp.fixedRowH + descriptionLines.length * (sp.descLineHeight + sp.descLineGap);
+    text(spell.name, sp.nameX, y, white);
+    textRight(spell.percent, sp.percentRightX, y, white);
+    drawWrappedLines(descriptionLines, sp.descX, y + sp.descDy, sp.descLineHeight, gray, sp.descLineGap);
+    spellY += rowHeight;
   });
 }
 

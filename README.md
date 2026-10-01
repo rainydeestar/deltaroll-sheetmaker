@@ -2,7 +2,8 @@
 
 Composites a character sheet onto a canvas at native 583px width and exports
 it as a flat PNG to attach in Discord. The frame grows vertically to fit the
-populated spells; six spells retain the original 583×1248 size.
+populated spells and every wrapped description line; blank descriptions add
+no description height.
 
 ## Verify it's actually pixel-perfect
 The first character loaded is a "Melanie" demo pre-filled with the exact
@@ -17,8 +18,8 @@ still confirm it before trusting it.
 ## Assets you still need to add
 `assets/frame_top.png`, `assets/frame_middle.png`, and
 `assets/frame_bottom.png` compose the sheet frame. The middle slice repeats
-in the Spells section to fit populated entries; blank spell entries add no
-height. Still missing:
+in the Spells section to fit populated entries and description lines; blank
+spell entries add no height. Still missing:
 
 | File | Used for |
 |---|---|
