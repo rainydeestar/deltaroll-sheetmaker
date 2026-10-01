@@ -15,7 +15,17 @@
         <button id="delChar" title="Delete this character">×</button>
       </div>
       <button id="download" class="primary">Download PNG</button>
+      <div class="json-tools">
+        <label class="small" for="sheetJson">Sheet JSON</label>
+        <textarea id="sheetJson" rows="8" spellcheck="false" placeholder="Paste a character sheet JSON here"></textarea>
+        <div class="row json-actions">
+          <button id="loadJson" type="button">Load</button>
+          <button id="generateJson" type="button">Generate</button>
+          <button id="copyJson" type="button">Copy</button>
+        </div>
+      </div>
       <p class="hint" id="fontWarning"></p>
+      <p class="hint" id="jsonStatus" aria-live="polite"></p>
 
       <details open>
         <summary>Header</summary>

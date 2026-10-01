@@ -591,12 +591,140 @@ el('delChar').onclick = () => {
   state.activeIndex = 0;
   renderCharSelect(); buildForm(); scheduleRender();
 };
+function downloadFile(contents, filename, type) {
+  const url = URL.createObjectURL(new Blob([contents], { type }));
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  link.click();
+  setTimeout(() => URL.revokeObjectURL(url), 0);
+}
+
+function characterJson() {
+  const character = activeChar();
+  const documentData = {
+    format: 'pixel-character-sheet',
+    version: 1,
+    character,
+  };
+  return JSON.stringify(documentData, null, 2);
+}
+
+function normalizeImportedCharacter(data) {
+  if (!data || typeof data !== 'object' || Array.isArray(data)) {
+    throw new Error('The JSON must contain a character object.');
+  }
+  if (data.format !== undefined) {
+    if (data.format !== 'pixel-character-sheet' || data.version !== 1) {
+      throw new Error('This character sheet JSON format is not supported.');
+    }
+    data = data.character;
+  } else if (!['name', 'title', 'skills', 'equip', 'items', 'stats', 'spells', 'description']
+    .some((key) => Object.hasOwn(data, key))) {
+    throw new Error('No character sheet data was found in this JSON.');
+  }
+  if (!data || typeof data !== 'object' || Array.isArray(data)) {
+    throw new Error('The JSON must contain a character object.');
+  }
+
+  const asText = (value) => typeof value === 'string' || typeof value === 'number' ? String(value) : '';
+  const source = data;
+  const character = blankCharacter(asText(source.name) || 'New Character');
+  character.title = asText(source.title);
+  character.description = asText(source.description);
+  character.portraitIcon = asText(source.portraitIcon);
+
+  if (source.skills && typeof source.skills === 'object') {
+    LAYOUT.skills.order.forEach((key) => {
+      character.skills[key] = Math.max(0, Math.min(3, parseInt(source.skills[key], 10) || 0));
+    });
+  }
+  if (source.equip && typeof source.equip === 'object') {
+    ['weapon', 'armor', 'trinket'].forEach((key) => {
+      const entry = source.equip[key];
+      if (!entry || typeof entry !== 'object') return;
+      character.equip[key].icon = asText(entry.icon);
+      character.equip[key].name = asText(entry.name);
+      if (key === 'weapon') character.equip.weapon.bigIcon = asText(entry.bigIcon);
+    });
+  }
+  if (Array.isArray(source.items)) {
+    character.items = character.items.map((item, index) => {
+      const entry = source.items[index];
+      return entry && typeof entry === 'object'
+        ? { icon: asText(entry.icon), name: asText(entry.name) }
+        : item;
+    });
+  }
+  if (source.stats && typeof source.stats === 'object') {
+    ['attack', 'defense', 'magic', 'speed'].forEach((key) => {
+      const entry = source.stats[key];
+      if (!entry || typeof entry !== 'object') return;
+      if (key === 'attack') character.stats.attack.icon = asText(entry.icon);
+      character.stats[key].value = asText(entry.value);
+    });
+    if (Array.isArray(source.stats.custom)) {
+      character.stats.custom = character.stats.custom.map((entry, index) => {
+        const custom = source.stats.custom[index];
+        return custom && typeof custom === 'object'
+          ? { icon: asText(custom.icon), label: asText(custom.label), value: asText(custom.value) }
+          : entry;
+      });
+    }
+    character.stats.guts = Math.max(0, parseInt(source.stats.guts, 10) || 0);
+  }
+  if (Array.isArray(source.spells)) {
+    character.spells = source.spells
+      .filter((spell) => spell && typeof spell === 'object' && !Array.isArray(spell))
+      .map((spell) => ({
+        name: asText(spell.name),
+        percent: asText(spell.percent),
+        description: asText(spell.description),
+      }));
+  }
+  return character;
+}
+
+el('generateJson').onclick = () => {
+  el('sheetJson').value = characterJson();
+  el('jsonStatus').textContent = 'JSON generated. Copy it from the text field.';
+};
+el('copyJson').onclick = async () => {
+  const field = el('sheetJson');
+  const json = characterJson();
+  field.value = json;
+  try {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(json);
+    } else {
+      field.focus();
+      field.select();
+      if (!document.execCommand('copy')) throw new Error('Clipboard unavailable');
+    }
+    el('jsonStatus').textContent = 'JSON copied to clipboard.';
+  } catch (error) {
+    field.focus();
+    field.select();
+    el('jsonStatus').textContent = 'Clipboard unavailable. JSON is selected for copying.';
+  }
+};
+el('loadJson').onclick = () => {
+  const status = el('jsonStatus');
+  try {
+    const imported = normalizeImportedCharacter(JSON.parse(el('sheetJson').value));
+    state.characters.push(imported);
+    state.activeIndex = state.characters.length - 1;
+    renderCharSelect();
+    buildForm();
+    scheduleRender();
+    status.textContent = `Imported ${imported.name}.`;
+  } catch (error) {
+    status.textContent = `Import failed: ${error.message}`;
+  }
+};
 el('download').onclick = () => {
   canvas.toBlob((blob) => {
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = `${(activeChar().name || 'character').replace(/\s+/g, '_')}.png`;
-    a.click();
+    downloadFile(blob, `${(activeChar().name || 'character').replace(/\s+/g, '_')}.png`, 'image/png');
   });
 };
 
