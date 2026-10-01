@@ -29,8 +29,6 @@ details[open] summary::before{content:'▾ ';}
 .fields{padding:10px;display:flex;flex-direction:column;gap:10px;}
 
 .row{display:flex;align-items:center;gap:6px;}
-.row select{flex:1;}
-.row button{width:30px;flex:0 0 auto;}
 .json-tools{display:flex;flex-direction:column;gap:6px;}
 .json-tools textarea{min-height:150px;resize:vertical;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px;line-height:1.4;}
 .row.json-actions button{width:auto;flex:1;}

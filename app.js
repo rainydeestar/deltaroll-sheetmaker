@@ -216,18 +216,24 @@ function demoCharacter() {
 /* ============================================================
    STORAGE
    ============================================================ */
-const STORE_KEY = 'pixelCharSheets_v2';
+const STORE_KEY = 'pixelCharSheet_v1';
+const LEGACY_STORE_KEY = 'pixelCharSheets_v2';
 function loadState() {
   try {
     const raw = localStorage.getItem(STORE_KEY);
     if (raw) return JSON.parse(raw);
+    const legacyRaw = localStorage.getItem(LEGACY_STORE_KEY);
+    if (legacyRaw) {
+      const legacyState = JSON.parse(legacyRaw);
+      return legacyState.characters[legacyState.activeIndex] || demoCharacter();
+    }
   } catch (e) { /* corrupt storage, fall through */ }
-  return { activeIndex: 0, characters: [demoCharacter()] };
+  return demoCharacter();
 }
 function saveState() { localStorage.setItem(STORE_KEY, JSON.stringify(state)); }
 
 let state = loadState();
-function activeChar() { return state.characters[state.activeIndex]; }
+function activeChar() { return state; }
 
 /* ============================================================
    IMAGE CACHE
@@ -494,7 +500,7 @@ function buildForm() {
   const c = activeChar();
 
   const h = el('sec-header'); h.innerHTML = '';
-  h.appendChild(makeField('Name', c.name, (v) => { c.name = v; renderCharSelect(); scheduleRender(); }));
+  h.appendChild(makeField('Name', c.name, (v) => { c.name = v; scheduleRender(); }));
   h.appendChild(makeField('Title / level line', c.title, (v) => { c.title = v; scheduleRender(); }));
   h.appendChild(makeField('Description (wraps, up to 3 lines)', c.description, (v) => { c.description = v; scheduleRender(); }, { textarea: true }));
   h.appendChild(makeIconPicker('Portrait icon', c.portraitIcon, (v) => { c.portraitIcon = v; scheduleRender(); }, CHARACTER_ICON_DIR, CHARACTER_ICON_MANIFEST));
@@ -563,34 +569,8 @@ function buildForm() {
 }
 
 /* ============================================================
-   CHARACTER SWITCHER + EXPORT
+   CHARACTER JSON IMPORT + EXPORT
    ============================================================ */
-function renderCharSelect() {
-  const sel = el('charSelect');
-  sel.innerHTML = '';
-  state.characters.forEach((c, i) => {
-    const opt = document.createElement('option');
-    opt.value = i; opt.textContent = c.name || 'Unnamed';
-    sel.appendChild(opt);
-  });
-  sel.value = state.activeIndex;
-}
-
-el('charSelect').onchange = (e) => {
-  state.activeIndex = parseInt(e.target.value);
-  renderCharSelect(); buildForm(); scheduleRender();
-};
-el('addChar').onclick = () => {
-  state.characters.push(blankCharacter());
-  state.activeIndex = state.characters.length - 1;
-  renderCharSelect(); buildForm(); scheduleRender();
-};
-el('delChar').onclick = () => {
-  if (state.characters.length <= 1) return;
-  state.characters.splice(state.activeIndex, 1);
-  state.activeIndex = 0;
-  renderCharSelect(); buildForm(); scheduleRender();
-};
 function downloadFile(contents, filename, type) {
   const url = URL.createObjectURL(new Blob([contents], { type }));
   const link = document.createElement('a');
@@ -712,9 +692,7 @@ el('loadJson').onclick = () => {
   const status = el('jsonStatus');
   try {
     const imported = normalizeImportedCharacter(JSON.parse(el('sheetJson').value));
-    state.characters.push(imported);
-    state.activeIndex = state.characters.length - 1;
-    renderCharSelect();
+    state = imported;
     buildForm();
     scheduleRender();
     status.textContent = `Imported ${imported.name}.`;
@@ -741,7 +719,6 @@ el('download').onclick = () => {
   await discoverIcons(ICON_DIR, ICON_MANIFEST);
   await discoverIcons(CHARACTER_ICON_DIR, CHARACTER_ICON_MANIFEST);
   await discoverIcons(WEAPON_BIG_ICON_DIR, WEAPON_BIG_ICON_MANIFEST);
-  renderCharSelect();
   buildForm();
   await render();
 })();
