@@ -5,20 +5,69 @@
    ============================================================ */
 const ICON_MANIFEST = [
   'icontest.png',
+  'apron.png',
   'armor.png',
   'axe.png',
-  'dot.png',
-  'glove.png',
-  'scarf.png',
-  'sword.png',
-  'soul_courage.png',
+  'bang.png',
+  'blackshard.png',
   'clover.png',
+  'decrease.png',
+  'dogsmile.png',
+  'dot.png',
+  'down.png',
+  'evil.png',
+  'fluff.png',
+  'gingerbread.png',
+  'glasses.png',
+  'glove.png',
+  'guts.png',
+  'hat.png',
+  'heart_empty.png',
+  'heart_full.png',
+  'ice.png',
+  'increase.png',
+  'knife.png',
+  'lollipop.png',
+  'magic.png',
+  'ring.png',
+  'scarf.png',
+  'shoe.png',
+  'sleep.png',
+  'smile.png',
+  'sword.png',
+  'up.png',
 ];
 const ICON_DIR = 'assets/icons/';
-const CHARACTER_ICON_MANIFEST = ['soul_courage.png'];
+const CHARACTER_ICON_MANIFEST = [
+  'soul_courage.png',
+  'soul_monster.png',
+  'soul_patience.png',
+  'soul_bravery.png',
+  'soul_integrity.png',
+  'soul_perseverance.png',
+  'soul_kindness.png',
+  'soul_justice.png',
+  'soul_red.png',
+  'flower_aqua.png',
+  'flower_orange.png',
+  'flower_blue.png',
+  'flower_purple.png',
+  'flower_green.png',
+  'flower_yellow.png',
+  'flower_golden.png',
+];
 const CHARACTER_ICON_DIR = 'assets/character/';
 const WEAPON_BIG_ICON_MANIFEST = [
+  'big_axe.png',
+  'big_club.png',
   'big_glove.png',
+  'big_gun.png',
+  'big_knife.png',
+  'big_ring.png',
+  'big_scarf.png',
+  'big_shoe.png',
+  'big_spear.png',
+  'big_sword.png',
 ];
 const WEAPON_BIG_ICON_DIR = 'assets/weapon-big/';
 const IMAGE_EXTENSIONS = /\.(?:png|jpe?g|gif|webp|avif)$/i;
@@ -66,10 +115,10 @@ const LAYOUT = {
   font: { family: 'Determination Sans Web', size: 32, fallback: 'monospace' },
 
   header: {
-    portrait: { x: 91, y: 90, w: 20, h: 24 },
-    name: { centerX: 102, y: 60 },
-    title: { x: 185, y: 42 },
-    desc: { x: 185, y: 75, maxWidth: 363, lineHeight: 33, maxLines: 3 },
+    portrait: { x: 90, y: 86, w: 40, h: 48 },
+    name: { centerX: 112, y: 55 },
+    title: { x: 205, y: 42 },
+    desc: { x: 205, y: 75, maxWidth: 343, lineHeight: 33, maxLines: 3 },
   },
 
   skills: {
@@ -81,9 +130,9 @@ const LAYOUT = {
   equip: {
     weaponBig: { x: 291, y: 167, w: 26, h: 36 }, // the one exception size
     rows: {
-      weapon: { iconX: 332, iconY: 177, textY: 179 },
-      armor: { iconX: 332, iconY: 209, textY: 211 },
-      trinket: { iconX: 332, iconY: 241, textY: 243 },
+      weapon: { iconX: 330, iconY: 177, textY: 179 },
+      armor: { iconX: 330, iconY: 209, textY: 211 },
+      trinket: { iconX: 330, iconY: 241, textY: 243 },
     },
     iconW: 20, iconH: 24, textX: 354,
   },
@@ -336,13 +385,13 @@ async function render() {
 
   // ---- equipped ----
   const eq = LAYOUT.equip;
-  drawIcon(c.equip.weapon.bigIcon, eq.weaponBig.x, eq.weaponBig.y, eq.weaponBig.w, eq.weaponBig.h);
-  drawIcon(c.equip.weapon.icon, eq.rows.weapon.iconX, eq.rows.weapon.iconY, eq.iconW, eq.iconH);
-  text(c.equip.weapon.name, eq.textX, eq.rows.weapon.textY, white);
-  drawIcon(c.equip.armor.icon, eq.rows.armor.iconX, eq.rows.armor.iconY, eq.iconW, eq.iconH);
-  text(c.equip.armor.name, eq.textX, eq.rows.armor.textY, white);
-  drawIcon(c.equip.trinket.icon, eq.rows.trinket.iconX, eq.rows.trinket.iconY, eq.iconW, eq.iconH);
-  text(c.equip.trinket.name, eq.textX, eq.rows.trinket.textY, white);
+    drawIcon(c.equip.weapon.bigIcon, eq.weaponBig.x, eq.weaponBig.y, eq.weaponBig.w, eq.weaponBig.h);
+    drawIcon(c.equip.weapon.icon, eq.rows.weapon.iconX, eq.rows.weapon.iconY, eq.iconW, eq.iconH);
+    text(c.equip.weapon.name || '(Weapon)', eq.textX, eq.rows.weapon.textY, c.equip.weapon.name ? white : gray);
+    drawIcon(c.equip.armor.icon, eq.rows.armor.iconX, eq.rows.armor.iconY, eq.iconW, eq.iconH);
+    text(c.equip.armor.name || '(Armor)', eq.textX, eq.rows.armor.textY, c.equip.armor.name ? white : gray);
+    drawIcon(c.equip.trinket.icon, eq.rows.trinket.iconX, eq.rows.trinket.iconY, eq.iconW, eq.iconH);
+    text(c.equip.trinket.name || '(Trinket)', eq.textX, eq.rows.trinket.textY, c.equip.trinket.name ? white : gray);
 
   // ---- items ----
   const it = LAYOUT.items;
