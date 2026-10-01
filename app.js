@@ -165,8 +165,8 @@ const LAYOUT = {
 function blankCharacter(name) {
   return {
     name: name || 'New Character',
-    title: '',
-    description: '',
+    title: 'LV0 — Vessel',
+    description: 'An empty canvas yet to be painted.',
     portraitIcon: '',
     skills: { brawn: 0, finesse: 0, intellect: 0, perception: 0, charm: 0 },
     equip: {
@@ -183,34 +183,8 @@ function blankCharacter(name) {
       custom: [{ icon: '', label: '', value: '' }, { icon: '', label: '', value: '' }],
       guts: 0,
     },
-    spells: Array.from({ length: 6 }, () => ({ name: '', percent: '', description: '' })),
+    spells: [],
   };
-}
-
-// Matches the reference mockup exactly, so you can export this one and
-// diff it pixel-for-pixel against the example PNG to sanity-check the renderer.
-function demoCharacter() {
-  const c = blankCharacter('Melanie');
-  c.title = 'LV9 — Legendary Hero';
-  c.description = 'Fends fate through the power of fists and friendship.';
-  c.skills = { brawn: 3, finesse: 0, intellect: 0, perception: 0, charm: 2 };
-  c.equip.weapon.name = 'Weapon';
-  c.equip.armor.name = 'Armor';
-  c.equip.trinket.name = 'Trinket';
-  c.items = c.items.map((it, i) => (i < 5 ? { icon: '', name: 'PlaceholderObject' } : it));
-  c.stats.attack.value = '999';
-  c.stats.defense.value = '99';
-  c.stats.magic.value = '9';
-  c.stats.speed.value = '999';
-  c.stats.custom[0] = { icon: '', label: 'Placeholder', value: '99' };
-  c.stats.custom[1] = { icon: '', label: 'Placeholder', value: '999' };
-  c.stats.guts = 3;
-  c.spells = c.spells.map((s, i) => ({
-    name: 'Rude Buster',
-    percent: i === 0 ? '00%' : '100%',
-    description: 'Fling a target within 12 squares 2 + MG squares in a direction of your choosing.',
-  }));
-  return c;
 }
 
 /* ============================================================
@@ -225,10 +199,10 @@ function loadState() {
     const legacyRaw = localStorage.getItem(LEGACY_STORE_KEY);
     if (legacyRaw) {
       const legacyState = JSON.parse(legacyRaw);
-      return legacyState.characters[legacyState.activeIndex] || demoCharacter();
+      return legacyState.characters[legacyState.activeIndex] || blankCharacter();
     }
   } catch (e) { /* corrupt storage, fall through */ }
-  return demoCharacter();
+  return blankCharacter();
 }
 function saveState() { localStorage.setItem(STORE_KEY, JSON.stringify(state)); }
 
