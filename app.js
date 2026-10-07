@@ -39,6 +39,9 @@ const ICON_MANIFEST = [
 ];
 const ICON_DIR = 'assets/icons/';
 const CHARACTER_ICON_MANIFEST = [
+  'character_melanie.png',
+  'character_kris.png',
+  'character_susie.png',
   'soul_courage.png',
   'soul_monster.png',
   'soul_patience.png',
@@ -115,8 +118,8 @@ const LAYOUT = {
   font: { family: 'Determination Sans Web', size: 32, fallback: 'monospace' },
 
   header: {
-    portrait: { x: 90, y: 86, w: 40, h: 48 },
-    name: { centerX: 112, y: 55 },
+    portrait: { x: 68, y: 62, w: 80, h: 80 },
+    name: { centerX: 110, y: 45 },
     title: { x: 205, y: 42 },
     desc: { x: 205, y: 75, maxWidth: 343, lineHeight: 33, maxLines: 3 },
   },
