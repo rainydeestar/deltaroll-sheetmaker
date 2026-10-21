@@ -376,7 +376,7 @@ async function render() {
     drawIcon(c.equip.armor.icon, eq.rows.armor.iconX, eq.rows.armor.iconY, eq.iconW, eq.iconH);
     text(c.equip.armor.name || '(Armor)', eq.textX, eq.rows.armor.textY, c.equip.armor.name ? white : gray);
     drawIcon(c.equip.trinket.icon, eq.rows.trinket.iconX, eq.rows.trinket.iconY, eq.iconW, eq.iconH);
-    text(c.equip.trinket.name || '(Trinket)', eq.textX, eq.rows.trinket.textY, c.equip.trinket.name ? white : gray);
+    text(c.equip.trinket.name || '(Armor)', eq.textX, eq.rows.trinket.textY, c.equip.trinket.name ? white : gray);
 
   // ---- items ----
   const it = LAYOUT.items;
