@@ -34,6 +34,7 @@ const ICON_MANIFEST = [
   'shoe.png',
   'sleep.png',
   'smile.png',
+  'star.png',
   'sword.png',
   'up.png',
 ];
