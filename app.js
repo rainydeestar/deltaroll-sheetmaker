@@ -143,7 +143,7 @@ const LAYOUT = {
 
   items: {
     count: 10, startY: 313, rowH: 30,
-    iconX: 293, iconW: 20, iconH: 24, textX: 313, dashEndX: 548,
+    iconX: 293, iconW: 20, iconH: 24, textX: 319, dashEndX: 554,
   },
 
   stats: {
