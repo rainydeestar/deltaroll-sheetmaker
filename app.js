@@ -16,6 +16,7 @@ const ICON_MANIFEST = [
   'dot.png',
   'down.png',
   'evil.png',
+  'eye.png',
   'flirt.png',
   'fluff.png',
   'gingerbread.png',
